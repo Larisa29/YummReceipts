@@ -49,15 +49,21 @@ const App = () => {
 
       {
         recipes.map((recipe) => (
-          <RecipeCard recipe={recipe} onClick={()=> setSelectedRecipe(recipe)}/>
-      ))}
+          <RecipeCard recipe={recipe} onClick={() => setSelectedRecipe(recipe)} />
+        ))
+      }
 
       <button
         className='wiew-more'
         onClick={handleViewMoreClick}>View more
       </button>
 
-      {selectedRecipe? <RecipeModal recipeId={selectedRecipe.id.toString()}/>:null}
+      {selectedRecipe ?
+        <RecipeModal
+          recipeId={selectedRecipe.id.toString()}
+          onClose={() => setSelectedRecipe(undefined)}
+        />
+        : null}
     </div>
   );
 };
