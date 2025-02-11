@@ -52,6 +52,36 @@ app.get("/api/recipes/favourite", async (req, res) => {
 
   } catch (error) {
     console.log(error);
+    res.status(500).json({ error: "hmm..smth went wrong!" });
+  }
+})
+
+app.delete("/api/recipes/favourite", async (req, res) => {
+  const recipeId = req.body.recipeId;
+
+  if (!recipeId) {
+    res.status(400).json({ error: "recipeId is required!" });
+  }
+
+  try {
+    const recipe = await prismaClient.favouriteRecipes.findUnique({
+      where: { recipeId }
+    });
+
+    if (!recipe) {
+      res.status(404).json({ error: "Recipe not found!" });
+    }
+
+    await prismaClient.favouriteRecipes.delete({
+      where: {
+        recipeId: recipeId
+      }
+    })
+    res.status(204).send();
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "hmm..smth went wrong!" });
   }
 })
 
