@@ -1,3 +1,5 @@
+import { error } from "console";
+
 const API_KEY = process.env.API_KEY
 
 export const searchRecipes = async (searchTerm: string, page: number) => {
@@ -47,3 +49,27 @@ export const getRecipeSummary = async (recipeId: string) => {
         console.error(error);
     }
 };
+
+export const getRecipes = async (recipesIds: string[]) => {
+    if (!API_KEY) {
+        throw new Error("API key not found");
+    }
+
+    const url = new URL("https://api.spoonacular.com/recipes/informationBulk");
+    const queryParams = {
+        apiKey: API_KEY,
+        ids: recipesIds.join(","),
+    };
+
+    url.search = new URLSearchParams(queryParams).toString();
+
+    try {
+        const recipesInfo = await fetch(url);
+        const jsonRecipesInfo = await recipesInfo.json();
+
+        return { results: jsonRecipesInfo };
+
+    } catch (error) {
+        console.error(error);
+    }
+}

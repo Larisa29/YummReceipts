@@ -1,15 +1,33 @@
-import { FormEvent, useRef, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import './App.css';
 import * as api from './API';
 import { Recipe } from './types';
 import RecipeCard from './components/RecipeCard';
 import RecipeModal from './components/RecipeModal';
 
+type Tabs = "search" | "favourites";
+
 const App = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | undefined>(undefined);
   const pageNumber = useRef(1);
+  const [selectedTab, setSelectedTab] = useState<Tabs>("search");
+  const [favouriteRecipes, setFavouriteRecipes] = useState<Recipe[]>([]);
+
+  useEffect(() => {
+    const fetchFavouriteRecipes = async () => {
+      try {
+        const favouriteRecipes = await api.getFavouriteRecipes();
+        setFavouriteRecipes(favouriteRecipes.results);
+      }
+      catch (error) {
+        console.log(error);
+      }
+    }
+
+    fetchFavouriteRecipes();
+  }, [])
 
   const handleSearchSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -36,27 +54,77 @@ const App = () => {
     }
   }
 
+  const addFavouriteRecipe = async (recipe: Recipe) => {
+    try {
+      await api.addFavouriteRecipe(recipe);
+      setFavouriteRecipes([...favouriteRecipes, recipe]);
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const deleteFavouriteRecipe = async (recipe: Recipe) => {
+    try {
+      await api.deleteFavouriteRecipe(recipe);
+      const updatedRecipes = favouriteRecipes.filter(currentFavourite => currentFavourite.id !== recipe.id);
+
+      setFavouriteRecipes(updatedRecipes);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   return (
     <div>
-      <form onSubmit={(event) => handleSearchSubmit(event)}>
-        <input type="text"
-          required
-          placeholder='enter a search term...'
-          value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}></input>
-        <button type="submit">Submit</button>
-      </form>
+      <div className='tabs'>
+        <h1 onClick={() => setSelectedTab("search")}> Recipe Search </h1>
+        <h1 onClick={() => setSelectedTab("favourites")}> Favourites </h1>
+      </div>
+      {selectedTab === "search" && (
+        <>
+          <form onSubmit={(event) => handleSearchSubmit(event)}>
+            <input type="text"
+              required
+              placeholder='enter a search term...'
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}></input>
+            <button type="submit">Submit</button>
+          </form>
 
-      {
-        recipes.map((recipe) => (
-          <RecipeCard recipe={recipe} onClick={() => setSelectedRecipe(recipe)} />
-        ))
-      }
+          {
+            recipes.map((recipe) => {
+              const isFavourite = favouriteRecipes.some(
+                (favRecipe) => recipe.id === favRecipe.id
+              );
 
-      <button
-        className='wiew-more'
-        onClick={handleViewMoreClick}>View more
-      </button>
+              return (<RecipeCard
+                recipe={recipe}
+                onClick={() => setSelectedRecipe(recipe)}
+                onFavouriteButtonClick={isFavourite ? deleteFavouriteRecipe : addFavouriteRecipe}
+                isFavourite={isFavourite}
+              />);
+            })
+          }
+
+          <button
+            className='wiew-more'
+            onClick={handleViewMoreClick}>View more
+          </button>
+        </>
+      )}
+      {selectedTab === "favourites" && (
+        <div>
+          {favouriteRecipes.map((recipe) => (
+            <RecipeCard
+              recipe={recipe}
+              onClick={() => setSelectedRecipe(recipe)}
+              onFavouriteButtonClick={deleteFavouriteRecipe}
+              isFavourite={true}
+            />
+          ))}
+        </div>
+      )}
 
       {selectedRecipe ?
         <RecipeModal
