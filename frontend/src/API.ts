@@ -55,4 +55,23 @@ const addFavouriteRecipe = async (recipe: Recipe) => {
     }
 }
 
-export { searchRecipes, getRecipeSummary, getFavouriteRecipes, addFavouriteRecipe };
+const deleteFavouriteRecipe = async (recipe: Recipe) => {
+    const url = new URL("http://localhost:5000/api/recipes/favourite");
+    const body = {
+        recipeId: recipe.id
+    }
+
+    const response = await fetch(url, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+        throw new Error(`http error - status: ${response.status}`);
+    }
+}
+
+export { searchRecipes, getRecipeSummary, getFavouriteRecipes, addFavouriteRecipe, deleteFavouriteRecipe };
