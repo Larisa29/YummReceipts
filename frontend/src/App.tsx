@@ -4,6 +4,7 @@ import * as api from './API';
 import { Recipe } from './types';
 import RecipeCard from './components/RecipeCard';
 import RecipeModal from './components/RecipeModal';
+import { AiOutlineSearch } from 'react-icons/ai';
 
 type Tabs = "search" | "favourites";
 
@@ -76,10 +77,17 @@ const App = () => {
   }
 
   return (
-    <div>
+    <div className='app-container'>
+      <div className='header'>
+        <div className='title'>What's in your fridge?</div>
+      </div>
       <div className='tabs'>
-        <h1 onClick={() => setSelectedTab("search")}> Recipe Search </h1>
-        <h1 onClick={() => setSelectedTab("favourites")}> Favourites </h1>
+        <h1
+          className={selectedTab === "search" ? "tab-active" : ""}
+          onClick={() => setSelectedTab("search")}> Recipe Search </h1>
+        <h1
+          className={selectedTab === "favourites" ? "tab-active" : ""}
+          onClick={() => setSelectedTab("favourites")}> Favourites </h1>
       </div>
       {selectedTab === "search" && (
         <>
@@ -89,32 +97,34 @@ const App = () => {
               placeholder='enter a search term...'
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}></input>
-            <button type="submit">Submit</button>
+            <button type="submit"><AiOutlineSearch size={40} /></button>
           </form>
 
-          {
-            recipes.map((recipe) => {
-              const isFavourite = favouriteRecipes.some(
-                (favRecipe) => recipe.id === favRecipe.id
-              );
+          <div className='recipe-grid'>
+            {
+              recipes.map((recipe) => {
+                const isFavourite = favouriteRecipes.some(
+                  (favRecipe) => recipe.id === favRecipe.id
+                );
 
-              return (<RecipeCard
-                recipe={recipe}
-                onClick={() => setSelectedRecipe(recipe)}
-                onFavouriteButtonClick={isFavourite ? deleteFavouriteRecipe : addFavouriteRecipe}
-                isFavourite={isFavourite}
-              />);
-            })
-          }
+                return (<RecipeCard
+                  recipe={recipe}
+                  onClick={() => setSelectedRecipe(recipe)}
+                  onFavouriteButtonClick={isFavourite ? deleteFavouriteRecipe : addFavouriteRecipe}
+                  isFavourite={isFavourite}
+                />);
+              })
+            }
+          </div>
 
           <button
-            className='wiew-more'
+            className='view-more'
             onClick={handleViewMoreClick}>View more
           </button>
         </>
       )}
       {selectedTab === "favourites" && (
-        <div>
+        <div className='recipe-grid'>
           {favouriteRecipes.map((recipe) => (
             <RecipeCard
               recipe={recipe}
